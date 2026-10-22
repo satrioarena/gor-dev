@@ -937,26 +937,14 @@
         document.getElementById('mode-badge').className = "text-[10px] uppercase px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full font-semibold";
         renderDailyTable();
 
-    } catch (error) {
-        console.warn("Detail Error Firebase:", error.code, error.message);
-        
+     } catch (error) {
+        console.warn(error);
         errorEl.classList.remove('hidden');
-        
-        // Menampilkan pesan spesifik berdasarkan error dari Firebase
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-            errorEl.innerText = "Akun PIN belum terdaftar di Firebase!";
-        } else if (error.code === 'auth/wrong-password') {
-            errorEl.innerText = "Password / Kombinasi PIN salah!";
-        } else if (error.code === 'auth/network-request-failed') {
-            errorEl.innerText = "Koneksi internet bermasalah!";
-        } else {
-            // Menampilkan pesan bawaan asli dari Firebase untuk debugging
-            errorEl.innerText = "Error: " + error.message;
-        }
-
+        errorEl.innerText = "PIN Salah!";
         btnVerify.innerText = originalText;
         btnVerify.disabled = false;
     }
+}
 
         async function exitAdminMode() {
             try {
