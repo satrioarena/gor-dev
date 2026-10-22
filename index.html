@@ -907,16 +907,8 @@
             btnVerify.disabled = true;
             errorEl.classList.add('hidden');
 
-            let emailAuth = `pin${pin}@satrioarena.com`;
-            let passAuth = `satrio${pin}`;
-
-            // --- PENYESUAIAN KHUSUS DEVELOPMENT ---
-            // Karena sebelumnya Anda mendaftarkan email uji coba ini di konsol:
-            if (pin === "8909") {
-                emailAuth = "pin8909@prayudha.com";
-                passAuth = "afiq8909";
-            }
-            // --------------------------------------
+            let emailAuth = `pin${pin}@prayudha.com`;
+            let passAuth = `afiq${pin}`;
 
             try {
                 await firebase.auth().signInWithEmailAndPassword(emailAuth, passAuth);
