@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEV - Jadwal GOR SATRIO ARENA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Courier New', 'Courier', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        html, body {
+            height: 100vh;
+            background-color: #020617;
+            overflow: hidden; 
+            margin: 0;
+            padding: 0;
+        }
+        @media (max-width: 768px) {
+            html, body {
+                height: auto !important;
+                overflow-y: auto !important;
+            }
+        }
+        .admin-editable:hover {
+            outline: 2px dashed #38bdf8;
+            cursor: pointer;
+            background-color: rgba(56, 189, 248, 0.1) !important;
+        }
+        .time-col-mono {
+            font-family: 'Courier New', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.5px;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+        .marquee-text {
+            display: inline-block;
+            animation: marquee 22s linear infinite;
+        }
+        #ad-banner-img { transition: opacity 0.5s ease-in-out; }
+        .fade-out { opacity: 0; }
+        .fade-in { opacity: 1; }
+
+        /* KELAS KHUSUS PRINT */
+        .print-only { display: none; }
+        
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                overflow: visible !important;
+                height: auto !important;
+            }
+            .print-hide { display: none !important; }
+            .print-only { display: block !important; }
+            .print-flex { display: flex !important; }
+            
+            #report-modal {
+                position: static !important;
+                background: white !important;
+                inset: auto !important;
+                display: block !important;
+                padding: 0 !important;
+                z-index: 9999 !important;
+            }
+            #report-modal > div {
+                max-width: 100% !important;
+                width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                background: white !important;
+                color: black !important;
+                max-height: none !important;
+                height: auto !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important; 
+            }
+            
+            #report-tab-daily.print-active, #report-tab-monthly.print-active {
+                display: block !important;
+                overflow: visible !important;
+                max-height: none !important;
+                height: auto !important;
+            }
+            #report-tab-daily:not(.print-active), #report-tab-monthly:not(.print-active) {
+                display: none !important;
+            }
+            
+            #report-modal table { border-collapse: collapse !important; width: 100% !important; }
+            #report-modal th, #report-modal td { border: 1px solid #94a3b8 !important; padding: 6px !important; color: black !important; }
+            #report-modal th { background-color: #f1f5f9 !important; font-weight: bold !important; }
+            
+            #report-modal .bg-slate-950, #report-modal .bg-slate-900 {
+                background: white !important;
+                border: 1px solid #cbd5e1 !important;
+                color: black !important;
+            }
+            
+            #report-modal .text-sky-400, #report-modal .text-emerald-400, 
+            #report-modal .text-rose-400, #report-modal .text-amber-400,
+            #report-modal .text-slate-400, #report-modal .text-slate-300, 
+            #report-modal .text-white {
+                color: black !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-100 font-sans flex flex-col justify-between selection:bg-sky-500 selection:text-white h-screen">
+
+    <!-- HEADER UTAMA -->
+    <header class="print-hide bg-slate-900/90 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between backdrop-blur-md shrink-0 gap-3">
+        <!-- Bagian Kiri: Logo & Nama Arena -->
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-slate-900 rounded-xl border border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
+                <img src="SA.png" alt="Logo Satrio Arena" class="w-full h-full object-cover">
+            </div>
+            <div class="flex items-center space-x-2.5 whitespace-nowrap">
+                <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">SATRIO ARENA <span class="text-[10px] uppercase px-1.5 py-0.5 bg-rose-500 text-slate-950 rounded font-black ml-1">DEV</span></h1>
+                <span id="mode-badge" class="text-[10px] uppercase px-2.5 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full font-semibold">Display On</span>
+            </div>
+        </div>
+
+        <!-- Bagian Tengah: Pencarian Cepat -->
+        <div class="hidden md:flex items-center gap-1.5 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 shadow">
+            <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
+            <input type="text" id="schedule-search-input" oninput="handleScheduleSearch(this.value)" placeholder="Cari nama / klub..." class="bg-transparent text-xs text-white focus:outline-none w-40 lg:w-56">
+            <button id="clear-search-btn" onclick="clearScheduleSearch()" class="text-slate-500 hover:text-white hidden text-xs"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Bagian Kanan: Indikator Cloud & Jam Live -->
+        <div class="text-right flex items-center space-x-3">
+            <div id="cloud-status-badge" class="hidden sm:flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 transition-all">
+                <span id="cloud-status-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span id="cloud-status-text">Tersimpan</span>
+            </div>
+            <div>
+                <div id="live-clock" class="text-base font-black text-sky-400 tracking-wider font-mono">00:00:00</div>
+                <div id="live-date" class="text-[10px] text-slate-400 font-medium">Senin, 12 Oktober 2026</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- PANEL KONTROL DISPLAY -->
+    <div class="print-hide bg-slate-950/80 px-4 sm:px-6 py-3 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between shrink-0 gap-3">
+        <div class="text-xs text-slate-400 font-semibold flex items-center gap-2 shrink-0">
+            <i class="fa-solid fa-sliders text-sky-400"></i> Panel Kontrol Display
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-2">
+            <button onclick="toggleAutoRotate()" id="btn-autorotate" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-play text-emerald-400" id="autorotate-icon"></i> <span id="autorotate-text">Slideshow: Mati</span>
+            </button>
+            <div id="admin-controls" class="flex flex-wrap items-center gap-2">
+                <button onclick="toggleAdminMode()" id="btn-mode-toggle" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-lock text-sky-400" id="mode-icon"></i> <span id="mode-text">Admin Mode</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- TAB HARI & LEGENDA -->
+    <div class="print-hide bg-slate-900/60 px-6 py-2 border-b border-slate-800 flex items-center justify-between shrink-0 gap-4">
+        <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar w-full py-0.5" id="day-tabs-container"></div>
+        <div class="hidden md:flex items-center space-x-4 text-xs text-slate-400 shrink-0">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-500 border border-slate-700"></span> N/A</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500"></span> Kosong</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500/20 border border-sky-500"></span> Member</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500/20 border border-rose-500"></span> Reguler</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT JADWAL -->
+    <main class="print-hide flex-1 px-4 sm:px-6 py-2 max-w-full mx-auto flex flex-col w-full overflow-hidden">
+        <div class="bg-slate-900 rounded-xl border border-slate-800 shadow-2xl flex-1 flex flex-col overflow-hidden">
+            <div class="px-4 py-2 bg-slate-800/40 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2 shrink-0">
+                <h3 id="current-day-title" class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-calendar text-sky-400"></i> Jadwal Harian
+                </h3>
+                <div id="day-summary-badges" class="flex items-center gap-2 text-[11px] font-semibold"></div>
+                <span id="rotate-status-badge" class="hidden text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full animate-pulse">
+                    <i class="fa-solid fa-rotate mr-1"></i> Auto-Play Aktif (10s)
+                </span>
+            </div>
+            
+            <div class="p-3 overflow-y-auto md:overflow-hidden flex-1 flex flex-col md:flex-row gap-2 items-stretch h-full w-full">
+                <!-- KOLOM 1 -->
+                <div class="flex-1 overflow-x-hidden bg-slate-950/50 rounded-xl border border-slate-800 flex flex-col">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-300 text-[10px] uppercase tracking-wider border-b border-slate-700">
+                                <th class="py-1.5 px-1.5 w-[75px] font-bold">Waktu</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 1</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 2</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 3</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daily-table-body-1" class="divide-y divide-slate-800/60 text-[11px]"></tbody>
+                    </table>
+                </div>
+
+                <!-- KOLOM 2 -->
+                <div class="flex-1 overflow-x-hidden bg-slate-950/50 rounded-xl border border-slate-800 flex flex-col">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-300 text-[10px] uppercase tracking-wider border-b border-slate-700">
+                                <th class="py-1.5 px-1.5 w-[75px] font-bold">Waktu</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 1</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 2</th>
+                                <th class="py-1.5 px-1.5 font-bold text-sky-400">Lap 3</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daily-table-body-2" class="divide-y divide-slate-800/60 text-[11px]"></tbody>
+                    </table>
+                </div>
+
+                <!-- KOLOM 3 (SPONSOR AD BANNER) -->
+                <div class="w-full md:w-[25%] lg:w-[23%] bg-slate-950/90 rounded-xl border border-slate-800 p-2 relative shadow-lg flex items-center justify-center shrink-0 min-h-[300px] md:min-h-0">
+                    <span class="absolute top-3 right-4 text-[9px] text-slate-400 font-bold tracking-widest uppercase z-10 bg-slate-900/90 px-2 py-0.5 rounded border border-slate-800">Sponsor</span>
+                    <img id="ad-banner-img" src="atlantic.jpg" alt="Poster Sponsor" class="w-full h-full object-contain rounded-lg shadow">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER MARQUEE -->
+    <footer class="print-hide bg-slate-900 border-t border-slate-800 px-6 py-2 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 shrink-0 gap-2">
+        <div class="flex flex-col sm:flex-row items-center sm:space-x-6 gap-1 text-center sm:text-left shrink-0">
+            <span><i class="fa-solid fa-phone text-sky-400 mr-1.5"></i> Info & Booking: <b>Memo : 0813-1020-4112</b> | <b>Bheghe : 0857-7749-9997</b> | <b>Admin : 0822-2878-2467</b></span>
+            <span class="hidden lg:inline"><i class="fa-solid fa-location-dot text-sky-400 mr-1.5"></i> GOR SATRIO ARENA</span>
+        </div>
+        <div class="marquee-container flex-1 max-w-xl mx-4 overflow-hidden text-sky-400 font-extrabold text-sm sm:text-base italic tracking-wide">
+            <div class="marquee-text" id="footer-hint">
+                <i class="fa-solid fa-quote-left mr-2"></i> BIARKAN PROSES YANG BEKERJA HASIL YANG BERBICARA <i class="fa-solid fa-quote-right ml-2"></i>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: PASSCODE ADMIN -->
+    <div id="passcode-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xs p-5 shadow-2xl space-y-3 text-center">
+            <div class="bg-sky-500/15 w-10 h-10 rounded-full flex items-center justify-center mx-auto text-sky-400">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 class="font-bold text-sm text-white">PIN Admin</h3>
+            <p class="text-[11px] text-slate-400">Masukkan PIN khusus Admin</p>
+            <input type="password" id="admin-pin-input" maxlength="4" placeholder="••••" class="w-full text-center tracking-widest text-xl bg-slate-950 border border-slate-700 rounded-lg py-2 text-white focus:border-sky-500 focus:outline-none font-bold">
+            <div id="pin-error" class="text-[11px] text-rose-400 hidden">PIN Salah!</div>
+            <div class="flex gap-2 pt-1">
+                <button onclick="closePasscodeModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs font-semibold">Batal</button>
+                <button id="btn-login-admin" onclick="verifyAdminPin()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg text-xs font-bold shadow">Masuk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: EDIT SLOT BOOKING -->
+    <div id="edit-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-sky-400"></i> Edit Slot Booking
+                </h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-2.5 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Hari & Waktu</label>
+                    <input type="text" id="modal-info" readonly class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-300 font-semibold focus:outline-none font-mono">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Lapangan</label>
+                    <input type="text" id="modal-court" readonly class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-300 font-semibold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Nama Pembooking / Klub (Ketik "REG: Nama" untuk Reguler)</label>
+                    <input type="text" id="modal-input-name" placeholder="Contoh: Pak Fiqih atau REG: Budi" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-sky-500 focus:outline-none font-medium text-sm">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Status & Metode Pembayaran (Reguler)</label>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <select id="modal-pay-status" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                            <option value="">-- Status --</option>
+                            <option value="Lunas">Lunas</option>
+                            <option value="DP">DP</option>
+                            <option value="Booking">Booking</option>
+                        </select>
+                        <select id="modal-pay-method" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                            <option value="">-- Metode --</option>
+                            <option value="Cash">Cash</option>
+                            <option value="QRIS">QRIS</option>
+                            <option value="TF">TF</option>
+                        </select>
+                        <input type="text" id="modal-pay-note" placeholder="Ket (Cth: 50rb)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button onclick="setModalValue('Kosong')" class="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 py-2 rounded-lg font-semibold transition">
+                        Set Kosong
+                    </button>
+                    <button onclick="saveSlotEdit()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg font-bold transition shadow">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: BOOKING MASSAL -->
+    <div id="bulk-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-sky-400"></i> Booking Massal / Multi-Slot
+                </h3>
+                <button onclick="closeBulkModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-2.5 text-xs">
+                <div>
+                    <label class="block text-slate-400 mb-1">Pilih Hari</label>
+                    <select id="bulk-day" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                        <option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option><option value="Minggu">Minggu</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Pilih Lapangan (Bisa lebih dari 1)</label>
+                    <div class="flex gap-4 pt-1 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                        <label class="flex items-center gap-1.5 cursor-pointer text-white font-semibold"><input type="checkbox" id="bulk-l1" class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0"> Lapangan 1</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-white font-semibold"><input type="checkbox" id="bulk-l2" class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0"> Lapangan 2</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-white font-semibold"><input type="checkbox" id="bulk-l3" class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0"> Lapangan 3</label>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-400 mb-1">Jam Mulai</label>
+                        <select id="bulk-start-time" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none font-mono"></select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Jam Selesai</label>
+                        <select id="bulk-end-time" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none font-mono"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Nama Pembooking / Klub (Reguler)</label>
+                    <input type="text" id="bulk-name" placeholder="Contoh: Klub ABC" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:border-sky-500 focus:outline-none font-medium">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Status & Metode Pembayaran</label>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <select id="bulk-pay-status" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                            <option value="">-- Status --</option><option value="Lunas">Lunas</option><option value="DP">DP</option><option value="Booking">Booking</option>
+                        </select>
+                        <select id="bulk-pay-method" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                            <option value="">-- Metode --</option><option value="Cash">Cash</option><option value="QRIS">QRIS</option><option value="TF">TF</option>
+                        </select>
+                        <input type="text" id="bulk-pay-note" placeholder="Ket (Cth: 100rb)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button onclick="closeBulkModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg font-semibold transition">Batal</button>
+                    <button onclick="saveBulkBooking()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg font-bold transition shadow">Proses Massal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: LAPORAN GOR & CLOSING -->
+    <div id="report-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] flex flex-col print:border-none print:shadow-none print:bg-white print:max-h-none print:p-0 print:h-auto">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2 shrink-0 print-hide">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-amber-400"></i> Laporan Keuangan & Kasir GOR
+                </h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="archiveDailyReport()" id="btn-archive-action" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-xs transition shadow flex items-center gap-1">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Arsipkan Harian
+                    </button>
+                    <button onclick="window.print()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-xs transition shadow flex items-center gap-1">
+                        <i class="fa-solid fa-print"></i> Cetak Laporan
+                    </button>
+                    <button onclick="closeReportModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg px-1"></i></button>
+                </div>
+            </div>
+
+            <div class="flex gap-2 border-b border-slate-800 pb-2 shrink-0 print-hide">
+                <button onclick="switchReportTab('daily')" id="tab-btn-daily" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition shadow">Laporan Closing Harian</button>
+                <button onclick="switchReportTab('monthly')" id="tab-btn-monthly" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Rekap Bulanan (Per Tanggal)</button>
+            </div>
+
+            <div id="report-tab-daily" class="flex-1 overflow-y-auto space-y-3 text-xs pr-1 print-active print:overflow-visible print:p-6 print:bg-white print:text-black">
+                <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 print-hide">
+                    <label class="font-semibold text-slate-300">Pilih Hari Untuk Closing:</label>
+                    <select id="report-select-day" onchange="generateDailyReport()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-semibold focus:outline-none">
+                        <option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option><option value="Minggu">Minggu</option>
+                    </select>
+                </div>
+                <div id="daily-report-content" class="space-y-3"></div>
+            </div>
+
+            <div id="report-tab-monthly" class="flex-1 overflow-y-auto space-y-3 text-xs pr-1 hidden print:overflow-visible print:p-6 print:bg-white print:text-black">
+                <div class="print-only text-center border-b-2 border-black pb-3 mb-4">
+                    <h2 class="text-xl font-black uppercase tracking-wider">REKAPITULASI PENDAPATAN BULANAN</h2>
+                    <p class="text-sm font-semibold mt-1">GOR SATRIO ARENA</p>
+                </div>
+
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 print:border-none print:p-0 print:bg-transparent">
+                    <div class="flex justify-between items-center print-hide">
+                        <div class="font-semibold text-sky-400"><i class="fa-solid fa-table-list mr-1"></i> Data Real Per Tanggal (Arsip Bulanan)</div>
+                        <button onclick="loadMonthlyArchive()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-3 py-1 rounded text-[10px] shadow">Muat Data Cloud</button>
+                    </div>
+                    
+                    <div class="overflow-x-auto print:overflow-visible">
+                        <table class="w-full text-left border-collapse bg-slate-900 rounded-lg overflow-hidden border border-slate-800 text-[11px] print:bg-white print:border-black">
+                            <thead>
+                                <tr class="bg-slate-800 text-slate-300 text-[10px] uppercase border-b border-slate-700 text-center print:bg-gray-100 print:text-black print:border-black">
+                                    <th rowspan="2" class="py-2 px-2 border-r border-slate-700 align-middle print:border-black">Tanggal</th>
+                                    <th rowspan="2" class="py-2 px-2 border-r border-slate-700 align-middle print:border-black">Hari</th>
+                                    <th colspan="2" class="py-1 px-2 border-r border-slate-700 border-b print:border-black">Pemakaian Jam</th>
+                                    <th colspan="3" class="py-1 px-2 border-r border-slate-700 border-b text-emerald-400 print:border-black print:text-black">Status Bayar</th>
+                                    <th colspan="3" class="py-1 px-2 border-b text-sky-400 print:border-black print:text-black">Metode Bayar</th>
+                                </tr>
+                                <tr class="bg-slate-800 text-slate-400 text-[9px] uppercase border-b border-slate-700 text-center print:bg-gray-100 print:text-black print:border-black">
+                                    <th class="py-1 px-1 text-rose-400 border-r border-slate-700 print:border-black print:text-black" title="Reguler">Reg</th>
+                                    <th class="py-1 px-1 text-sky-400 border-r border-slate-700 print:border-black print:text-black" title="Member">Mem</th>
+                                    <th class="py-1 px-1 border-r border-slate-700 print:border-black">Lunas</th>
+                                    <th class="py-1 px-1 border-r border-slate-700 print:border-black">DP</th>
+                                    <th class="py-1 px-1 border-r border-slate-700 print:border-black">Book</th>
+                                    <th class="py-1 px-1 border-r border-slate-700 print:border-black">Cash</th>
+                                    <th class="py-1 px-1 border-r border-slate-700 print:border-black">QRIS</th>
+                                    <th class="py-1 px-1 print:border-black">TF</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthly-table-body" class="text-center">
+                                <tr><td colspan="10" class="text-center py-8 text-slate-500 italic print:text-black">Klik "Muat Data Cloud" untuk menarik arsip.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="print-only mt-10">
+                    <div class="flex justify-end gap-24 pr-10 text-sm">
+                        <div class="text-center">
+                            <p class="mb-16">Admin / Kasir,</p>
+                            <p class="font-bold border-b border-black w-32 mx-auto"></p>
+                        </div>
+                        <div class="text-center">
+                            <p class="mb-16">Mengetahui (Finance),</p>
+                            <p class="font-bold border-b border-black w-32 mx-auto"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: PENGATURAN ADMIN & POSTER -->
+    <div id="admin-settings-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-images text-sky-400"></i> Kelola Pengaturan & Poster
+                </h3>
+                <button onclick="closeAdminSettingsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Nama File Poster (Pisahkan dengan koma ,)</label>
+                    <textarea id="admin-ads-input" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:border-sky-500 focus:outline-none font-mono text-[11px]" placeholder="atlantic.jpg, MS.jpg, comingsoon.jpg"></textarea>
+                </div>
+                <div class="pt-2 border-t border-slate-800 space-y-2">
+                    <button onclick="resetRegulerOnly()" class="w-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 py-2 rounded-lg font-bold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-left"></i> Reset / Kosongkan Jadwal Reguler Saja
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="resetToDefault()" class="bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 px-3 py-2 rounded-lg font-semibold transition">
+                            Reset Semua Default
+                        </button>
+                        <button onclick="saveAdminSettings()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 py-2 rounded-lg font-bold transition shadow">
+                            Simpan Poster
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: KELOLA MASTER MEMBER -->
+    <div id="member-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2 shrink-0">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-users text-sky-400"></i> Kelola Master Member & Masa Aktif
+                </h3>
+                <button onclick="closeMemberModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2.5 text-xs shrink-0">
+                <div class="font-semibold text-sky-400">Tambah / Perbarui Member</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-400 mb-1">Nama Member / Klub</label>
+                        <input type="text" id="member-name-input" placeholder="Contoh: Pak Fiqih" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Tanggal Habis Masa Aktif</label>
+                        <input type="date" id="member-expiry-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-sky-500 focus:outline-none">
+                    </div>
+                </div>
+                <button onclick="saveMember()" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-1.5 rounded-lg transition">
+                    Simpan Member
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto space-y-1.5 text-xs pr-1">
+                <div class="font-semibold text-slate-400 mb-2">Daftar Member Terdaftar:</div>
+                <div id="member-list-container" class="space-y-1.5"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE SDK COMPAT MODE -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+    <script>
+        function closePasscodeModal() {
+            document.getElementById('passcode-modal').classList.add('hidden');
+        }
+
+        // 1. KONFIGURASI FIREBASE REALTIME DATABASE (DEVELOPMENT)
+        const firebaseConfig = {
+          apiKey: "AIzaSyCKiJMHYGu61HyYUFKdPNLMvgiinUfwVgY",
+          authDomain: "sistem-gor-development.firebaseapp.com",
+          databaseURL: "https://sistem-gor-development-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "sistem-gor-development",
+          storageBucket: "sistem-gor-development.firebasestorage.app",
+          messagingSenderId: "529548973235",
+          appId: "1:529548973235:web:015b40fb28271c32964cc6"
+        };
+
+        // Inisialisasi Firebase (Compat Mode)
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // TEMPLATE DUMMY UNTUK HARI KOSONG
+        const emptyDayTemplate = [
+            { time: "06:00 - 07:00", l1: "Not Available", l2: "Not Available", l3: "Not Available" },
+            { time: "07:00 - 08:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "08:00 - 09:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "09:00 - 10:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "10:00 - 11:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "11:00 - 12:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "12:00 - 13:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "13:00 - 14:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "14:00 - 15:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "15:00 - 16:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "16:00 - 17:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "17:00 - 18:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "18:00 - 19:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "19:00 - 20:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "20:00 - 21:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "21:00 - 22:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "22:00 - 23:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" },
+            { time: "23:00 - 24:00", l1: "Kosong", l2: "Kosong", l3: "Kosong" }
+        ];
+
+        const defaultSchedule = {
+            "Senin": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Selasa": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Rabu": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Kamis": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Jumat": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Sabtu": JSON.parse(JSON.stringify(emptyDayTemplate)),
+            "Minggu": JSON.parse(JSON.stringify(emptyDayTemplate))
+        };
+
+        let dbRecord = {
+            schedule: JSON.parse(JSON.stringify(defaultSchedule)),
+            ads: ["atlantic.jpg", "MS.jpg", "comingsoon.jpg"],
+            members: []
+        };
+
+        let currentDay = "Senin";
+        let isAdminMode = false;
+        let isAutoRotateActive = false;
+        let autoRotateInterval = null;
+        let currentAdIndex = 0;
+        let editSlotIndex = null;
+        let editCourtKey = null;
+        const dayOrder = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+
+        let isSearching = false;
+        let searchKeyword = "";
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('id-ID');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('live-date').innerText = now.toLocaleDateString('id-ID', options);
+        }
+        setInterval(updateClock, 1000);
+
+        function renderDayTabs() {
+            const container = document.getElementById('day-tabs-container');
+            if (!container) return;
+            container.innerHTML = '';
+            dayOrder.forEach(day => {
+                const isActive = day === currentDay;
+                const btn = document.createElement('button');
+                btn.className = `px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
+                    isActive ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20 scale-105' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`;
+                btn.innerHTML = `<i class="fa-regular fa-calendar mr-1"></i> ${day}`;
+                btn.onclick = () => {
+                    if (isAutoRotateActive) toggleAutoRotate();
+                    currentDay = day;
+                    renderDailyTable();
+                    renderDayTabs();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function handleScheduleSearch(keyword) {
+            searchKeyword = keyword.trim().toLowerCase();
+            const clearBtn = document.getElementById('clear-search-btn');
+            
+            if (searchKeyword.length > 0) {
+                isSearching = true;
+                if (clearBtn) clearBtn.classList.remove('hidden');
+            } else {
+                isSearching = false;
+                if (clearBtn) clearBtn.classList.add('hidden');
+            }
+            renderDailyTable();
+        }
+
+        function clearScheduleSearch() {
+            const inputEl = document.getElementById('schedule-search-input');
+            if (inputEl) inputEl.value = '';
+            handleScheduleSearch('');
+        }
+
+        function renderDailyTable() {
+            const titleEl = document.getElementById('current-day-title');
+            const tbody1 = document.getElementById('daily-table-body-1');
+            const tbody2 = document.getElementById('daily-table-body-2');
+            if (!tbody1 || !tbody2) return;
+            
+            tbody1.innerHTML = '';
+            tbody2.innerHTML = '';
+            
+            let countKosong = 0, countMember = 0, countReguler = 0;
+
+            if (isSearching && searchKeyword.length > 0) {
+                if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-magnifying-glass text-sky-400"></i> Hasil Pencarian: "${searchKeyword}" (Semua Hari)`;
+                
+                let foundResults = [];
+                dayOrder.forEach(day => {
+                    let daySlots = (dbRecord.schedule && dbRecord.schedule[day]) ? dbRecord.schedule[day] : emptyDayTemplate;
+                    daySlots.forEach((slot, index) => {
+                        ['l1', 'l2', 'l3'].forEach(court => {
+                            let val = slot[court];
+                            if (val && val.toLowerCase().includes(searchKeyword)) {
+                                foundResults.push({
+                                    day: day,
+                                    time: slot.time,
+                                    court: court.toUpperCase().replace('L', 'Lap '),
+                                    val: val
+                                });
+                            }
+                        });
+                    });
+                });
+
+                if (foundResults.length === 0) {
+                    tbody1.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-500 italic">Tidak ditemukan jadwal dengan kata kunci "${searchKeyword}".</td></tr>`;
+                    document.getElementById('day-summary-badges').innerHTML = `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400">Ditemukan: <b>0</b></span>`;
+                    return;
+                }
+
+                foundResults.forEach((res, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-800/40 transition-colors";
+                    tr.innerHTML = `
+                        <td class="py-1 px-1 font-semibold text-sky-400 border-b border-slate-800/60 whitespace-nowrap">
+                            <span class="bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded text-[9px] mr-1">${res.day}</span> ${res.time}
+                        </td>
+                        <td class="py-1 px-1 font-bold text-slate-300 border-b border-slate-800/60 whitespace-nowrap">
+                            ${res.court}
+                        </td>
+                        <td colspan="2" class="py-1 px-1 border-b border-slate-800/60 whitespace-nowrap">
+                            ${formatCell(res.val)}
+                        </td>
+                    `;
+                    if (index < 9) tbody1.appendChild(tr);
+                    else tbody2.appendChild(tr);
+                });
+
+                document.getElementById('day-summary-badges').innerHTML = `
+                    <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 whitespace-nowrap">Total Ditemukan: <b>${foundResults.length}</b></span>
+                `;
+                return;
+            }
+
+            if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-calendar text-sky-400"></i> Jadwal Harian: ${currentDay}`;
+            let slots = (dbRecord.schedule && dbRecord.schedule[currentDay]) ? dbRecord.schedule[currentDay] : emptyDayTemplate;
+
+            slots.forEach((slot, index) => {
+                ['l1', 'l2', 'l3'].forEach(court => {
+                    let val = slot[court];
+                    if (val === "Kosong" || !val) countKosong++;
+                    else if (val === "Not Available") {}
+                    else if (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER")) countReguler++;
+                    else countMember++;
+                });
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-1 px-1 font-semibold text-slate-300 border-b border-slate-800/60 flex items-center gap-1 time-col-mono whitespace-nowrap">
+                        <i class="fa-regular fa-clock text-sky-400 text-[9px]"></i> ${slot.time}
+                    </td>
+                    <td class="py-1 px-1 border-b border-slate-800/60 whitespace-nowrap ${isAdminMode ? 'admin-editable' : ''}" ${isAdminMode ? `onclick="openEditModal(${index}, 'l1')"` : ''}>
+                        ${formatCell(slot.l1)}
+                    </td>
+                    <td class="py-1 px-1 border-b border-slate-800/60 whitespace-nowrap ${isAdminMode ? 'admin-editable' : ''}" ${isAdminMode ? `onclick="openEditModal(${index}, 'l2')"` : ''}>
+                        ${formatCell(slot.l2)}
+                    </td>
+                    <td class="py-1 px-1 border-b border-slate-800/60 whitespace-nowrap ${isAdminMode ? 'admin-editable' : ''}" ${isAdminMode ? `onclick="openEditModal(${index}, 'l3')"` : ''}>
+                        ${formatCell(slot.l3)}
+                    </td>
+                `;
+                if (index < 9) tbody1.appendChild(tr); 
+                else tbody2.appendChild(tr); 
+            });
+
+            document.getElementById('day-summary-badges').innerHTML = `
+                <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">Kosong: <b>${countKosong}</b></span>
+                <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 whitespace-nowrap">Member: <b>${countMember}</b></span>
+                <span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 whitespace-nowrap">Reguler: <b>${countReguler}</b></span>
+            `;
+        }
+
+        function formatCell(val) {
+            if (val === "Not Available") {
+                return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800/80 text-slate-500 border border-slate-700 whitespace-nowrap"><span class="w-1 h-1 rounded-full bg-slate-600 mr-1 shrink-0"></span> N/A</span>`;
+            } else if (val === "Kosong" || !val) {
+                return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap"><span class="w-1 h-1 rounded-full bg-emerald-500 mr-1 shrink-0"></span> Kosong</span>`;
+            } else if (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER")) {
+                let cleanVal = val.replace(/^REG:\s*/i, '').trim();
+                let paymentBadge = "";
+
+                let bracketMatch = cleanVal.match(/\[(.*?)\]/);
+                if (bracketMatch) {
+                    let statusText = bracketMatch[1];
+                    cleanVal = cleanVal.replace(/\[.*?\]/, '').trim();
+
+                    let badgeColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+                    let lowerStatus = statusText.toLowerCase();
+                    if (lowerStatus.includes("dp")) badgeColor = "text-amber-400 bg-amber-500/10 border-amber-500/20";
+                    else if (lowerStatus.includes("booking") || lowerStatus.includes("belum")) badgeColor = "text-rose-400 bg-rose-500/10 border-rose-500/20";
+
+                    paymentBadge = `<div class="text-[8px] px-1.5 py-0.2 rounded border ${badgeColor} font-semibold leading-tight mt-0.5 inline-block">${statusText}</div>`;
+                }
+
+                return `<div class="inline-flex flex-col items-start px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 max-w-full overflow-hidden">
+                    <span class="text-[10px] font-bold whitespace-nowrap flex items-center"><span class="w-1 h-1 rounded-full bg-rose-500 mr-1 shrink-0"></span> ${cleanVal}</span>
+                    ${paymentBadge}
+                </div>`;
+            } else {
+                let matchedMember = (dbRecord.members || []).find(m => m.name.toLowerCase().trim() === val.toLowerCase().trim());
+                let expiryBadge = "";
+                let badgeColor = "text-sky-400 bg-sky-500/10 border-sky-500/20";
+                let dotColor = "bg-sky-500";
+
+                if (matchedMember && matchedMember.expiry) {
+                    let expDate = new Date(matchedMember.expiry);
+                    let today = new Date();
+                    today.setHours(0,0,0,0);
+                    expDate.setHours(0,0,0,0);
+
+                    let formattedDate = isNaN(expDate) ? matchedMember.expiry : expDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                    if (expDate < today) {
+                        badgeColor = "text-rose-400 bg-rose-500/10 border-rose-500/30 animate-pulse";
+                        dotColor = "bg-rose-500";
+                        expiryBadge = `<div class="text-[8px] text-rose-400 font-bold leading-tight mt-0.5">⚠️ EXPIRED (${formattedDate})</div>`;
+                    } else {
+                        expiryBadge = `<div class="text-[8px] text-slate-400 font-normal leading-tight mt-0.5">s/d ${formattedDate}</div>`;
+                    }
+                }
+
+                return `<div class="inline-flex flex-col items-start px-1.5 py-0.5 rounded ${badgeColor} max-w-full overflow-hidden border">
+                    <span class="text-[10px] font-bold whitespace-nowrap flex items-center"><span class="w-1 h-1 rounded-full ${dotColor} mr-1 shrink-0"></span> ${val}</span>
+                    ${expiryBadge}
+                </div>`;
+            }
+        }
+
+        function updateAdBanner() {
+            const imgEl = document.getElementById('ad-banner-img');
+            if (!imgEl) return;
+            if (dbRecord.ads && dbRecord.ads.length > 0) {
+                imgEl.src = dbRecord.ads[currentAdIndex % dbRecord.ads.length];
+            }
+        }
+
+        function rotateAdBanner() {
+            if (!dbRecord.ads || dbRecord.ads.length <= 1) return;
+            const imgEl = document.getElementById('ad-banner-img');
+            if (!imgEl) return;
+
+            imgEl.classList.add('fade-out');
+            setTimeout(() => {
+                currentAdIndex = (currentAdIndex + 1) % dbRecord.ads.length;
+                imgEl.src = dbRecord.ads[currentAdIndex];
+                imgEl.classList.remove('fade-out');
+                imgEl.classList.add('fade-in');
+                setTimeout(() => imgEl.classList.remove('fade-in'), 500);
+            }, 500);
+        }
+
+        function toggleAutoRotate() {
+            const iconEl = document.getElementById('autorotate-icon');
+            const textEl = document.getElementById('autorotate-text');
+            const btnEl = document.getElementById('btn-autorotate');
+            const badgeEl = document.getElementById('rotate-status-badge');
+
+            if (isAutoRotateActive) {
+                clearInterval(autoRotateInterval);
+                autoRotateInterval = null;
+                isAutoRotateActive = false;
+
+                if (iconEl) iconEl.className = "fa-solid fa-play text-emerald-400";
+                if (textEl) textEl.innerText = "Slideshow: Mati";
+                if (btnEl) btnEl.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 shadow";
+                if (badgeEl) badgeEl.classList.add('hidden');
+            } else {
+                if (isAdminMode) exitAdminMode();
+                isAutoRotateActive = true;
+                if (iconEl) iconEl.className = "fa-solid fa-pause text-amber-400";
+                if (textEl) textEl.innerText = "Slideshow: Aktif (10s)";
+                if (btnEl) btnEl.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center gap-1.5 shadow";
+                if (badgeEl) badgeEl.classList.remove('hidden');
+
+                if (autoRotateInterval) clearInterval(autoRotateInterval);
+                autoRotateInterval = setInterval(() => {
+                    let currentIndex = dayOrder.indexOf(currentDay);
+                    let nextIndex = (currentIndex + 1) % dayOrder.length;
+                    currentDay = dayOrder[nextIndex];
+                    renderDayTabs();
+                    renderDailyTable();
+                }, 10000);
+            }
+        }
+
+        function toggleAdminMode() {
+            if (!isAdminMode) {
+                document.getElementById('passcode-modal').classList.remove('hidden');
+                document.getElementById('admin-pin-input').value = '';
+                document.getElementById('pin-error').classList.add('hidden');
+                document.getElementById('admin-pin-input').focus();
+            } else {
+                exitAdminMode();
+            }
+        }
+
+        async function verifyAdminPin() {
+            const pin = document.getElementById('admin-pin-input').value;
+            const errorEl = document.getElementById('pin-error');
+            const btnVerify = document.getElementById('btn-login-admin');
+            
+            if (!pin) {
+                errorEl.classList.remove('hidden');
+                errorEl.innerText = "Masukkan PIN Admin!";
+                return;
+            }
+
+            let originalText = btnVerify.innerText;
+            btnVerify.innerText = "Memeriksa...";
+            btnVerify.disabled = true;
+            errorEl.classList.add('hidden');
+
+            let emailAuth = `pin${pin}@satrioarena.com`;
+            let passAuth = `satrio${pin}`;
+
+            // --- PENYESUAIAN KHUSUS DEVELOPMENT ---
+            // Karena sebelumnya Anda mendaftarkan email uji coba ini di konsol:
+            if (pin === "8909") {
+                emailAuth = "pin8909@prayudha.com";
+                passAuth = "afiq8909";
+            }
+            // --------------------------------------
+
+            try {
+                await firebase.auth().signInWithEmailAndPassword(emailAuth, passAuth);
+                
+                closePasscodeModal();
+                isAdminMode = true;
+                
+                document.getElementById('admin-controls').innerHTML = `
+                    <button onclick="openReportModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-chart-pie"></i> Laporan
+                    </button>
+                    <button onclick="openBulkModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-purple-500/20 border border-purple-500/40 text-purple-300 hover:bg-purple-500/30 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-layer-group"></i> Booking Massal
+                    </button>
+                    <button onclick="openMemberModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/30 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-users"></i> Kelola Member
+                    </button>
+                    <button onclick="openAdminSettings()" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-sky-500/20 border border-sky-500/40 text-sky-300 hover:bg-sky-500/30 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-sliders"></i> Pengaturan
+                    </button>
+                    <button onclick="toggleAdminMode()" id="btn-mode-toggle" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-unlock"></i> Keluar Admin
+                    </button>
+                `;
+                document.getElementById('mode-badge').innerText = "Admin Mode";
+                document.getElementById('mode-badge').className = "text-[10px] uppercase px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full font-semibold";
+                renderDailyTable();
+
+            } catch (error) {
+                console.warn(error);
+                errorEl.classList.remove('hidden');
+                errorEl.innerText = "PIN Salah!";
+                btnVerify.innerText = originalText;
+                btnVerify.disabled = false;
+            }
+        }
+
+        async function exitAdminMode() {
+            try {
+                await firebase.auth().signOut();
+            } catch (err) {
+                console.error("Gagal logout", err);
+            }
+
+            isAdminMode = false;
+            document.getElementById('admin-controls').innerHTML = `
+                <button onclick="toggleAdminMode()" id="btn-mode-toggle" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-lock text-sky-400" id="mode-icon"></i> <span id="mode-text">Admin Mode</span>
+                </button>
+            `;
+            document.getElementById('mode-badge').innerText = "Display On";
+            document.getElementById('mode-badge').className = "text-[10px] uppercase px-2.5 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full font-semibold";
+            renderDailyTable();
+        }
+
+        function calculateDailyStats(day) {
+            let slots = (dbRecord.schedule && dbRecord.schedule[day]) ? dbRecord.schedule[day] : emptyDayTemplate;
+            let memberHours = 0, regulerHours = 0, emptyCount = 0;
+            let paymentBreakdown = { lunas: 0, dp: 0, booking: 0 };
+            let methodBreakdown = { cash: 0, qris: 0, tf: 0 };
+            let regulerList = [];
+            let totalEstimatedRevenue = 0;
+
+            slots.forEach(slot => {
+                ['l1', 'l2', 'l3'].forEach(court => {
+                    let val = slot[court];
+                    if (val === "Kosong" || !val) { emptyCount++; } 
+                    else if (val === "Not Available") {} 
+                    else if (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER")) {
+                        regulerHours++;
+                        let lowerVal = val.toLowerCase();
+                        if (lowerVal.includes("lunas")) paymentBreakdown.lunas++;
+                        else if (lowerVal.includes("dp")) paymentBreakdown.dp++;
+                        else paymentBreakdown.booking++;
+
+                        if (lowerVal.includes("cash")) methodBreakdown.cash++;
+                        if (lowerVal.includes("qris")) methodBreakdown.qris++;
+                        if (lowerVal.includes("tf")) methodBreakdown.tf++;
+
+                        let slotPrice = 50000;
+                        let bracketMatch = val.match(/\[(.*?)\]/);
+                        if (bracketMatch) {
+                            let contentInside = bracketMatch[1].toLowerCase();
+                            let numbers = contentInside.match(/\d+/g);
+                            if (numbers) {
+                                let num = parseInt(numbers.join(''));
+                                if (contentInside.includes('rb') || contentInside.includes('k')) slotPrice = num * 1000;
+                                else if (num < 1000) slotPrice = num * 1000;
+                                else slotPrice = num;
+                            }
+                        }
+                        totalEstimatedRevenue += slotPrice;
+                        regulerList.push({ time: slot.time, court: court.toUpperCase().replace('L', 'Lap '), val: val });
+                    } else { memberHours++; }
+                });
+            });
+
+            return { memberHours, regulerHours, emptyCount, paymentBreakdown, methodBreakdown, regulerList, totalEstimatedRevenue };
+        }
+
+        function generateDailyReport() {
+            let day = document.getElementById('report-select-day').value;
+            let stats = calculateDailyStats(day);
+            let todayDateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            let tableRowsHtml = "";
+            if (stats.regulerList.length === 0) {
+                tableRowsHtml = `<tr><td colspan="3" class="text-center py-4 text-slate-500 italic print:text-black">Tidak ada jadwal Reguler hari ini.</td></tr>`;
+            } else {
+                stats.regulerList.forEach(item => {
+                    let cleanName = item.val.replace(/^REG:\s*/i, '').replace(/\[.*?\]/g, '').trim();
+                    let bracketMatch = item.val.match(/\[(.*?)\]/);
+                    let badgeHtml = bracketMatch ? `<span class="ml-2 text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 border border-slate-300 print:border-black font-semibold">${bracketMatch[1]}</span>` : "";
+
+                    tableRowsHtml += `
+                        <tr class="border-b border-slate-800 text-[11px] hover:bg-slate-900 print:border-black print:hover:bg-white">
+                            <td class="py-1.5 px-2 font-mono font-bold text-sky-400 print:text-black whitespace-nowrap">${item.time}</td>
+                            <td class="py-1.5 px-2 font-semibold text-white print:text-black">${item.court}</td>
+                            <td class="py-1.5 px-2 font-bold text-rose-400 print:text-black">${cleanName} ${badgeHtml}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            let container = document.getElementById('daily-report-content');
+            container.innerHTML = `
+                <div class="print-only text-center border-b-2 border-black pb-3 mb-4">
+                    <h2 class="text-xl font-black uppercase tracking-wider">CLOSING KASIR HARIAN</h2>
+                    <p class="text-sm font-semibold mt-1">GOR SATRIO ARENA</p>
+                    <p class="text-[11px] mt-1">Hari/Tanggal: ${day}, ${todayDateStr}</p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-center mb-2">
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 print:bg-white print:border-black">
+                        <div class="text-[10px] text-slate-400 print:text-black">Total Jam Member</div>
+                        <div class="text-base font-bold text-sky-400 print:text-black">${stats.memberHours} Jam</div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 print:bg-white print:border-black">
+                        <div class="text-[10px] text-slate-400 print:text-black">Total Jam Reguler</div>
+                        <div class="text-base font-bold text-rose-400 print:text-black">${stats.regulerHours} Jam</div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 print:bg-white print:border-black">
+                        <div class="text-[10px] text-slate-400 print:text-black">Sisa Slot Kosong</div>
+                        <div class="text-base font-bold text-emerald-400 print:text-black">${stats.emptyCount} Slot</div>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/30 print:bg-white print:border-black flex justify-between items-center">
+                    <div>
+                        <div class="text-[11px] text-emerald-400 font-bold print:text-black">Total Estimasi Pendapatan Reguler:</div>
+                        <div class="text-[9px] text-slate-500 italic print:text-black">*Akumulasi dari rincian harga slot reguler.</div>
+                    </div>
+                    <div class="text-xl font-black text-emerald-400 print:text-black">Rp ${stats.totalEstimatedRevenue.toLocaleString('id-ID')}</div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 print:bg-white print:border-black">
+                        <div class="font-semibold text-amber-400 print:text-black border-b border-slate-800 print:border-black pb-1 mb-2">Status Bayar Reguler:</div>
+                        <div class="grid grid-cols-3 gap-1.5 text-center text-[11px] font-bold">
+                            <div>Lunas: <span class="text-emerald-400 print:text-black">${stats.paymentBreakdown.lunas}</span></div>
+                            <div>DP: <span class="text-amber-400 print:text-black">${stats.paymentBreakdown.dp}</span></div>
+                            <div>Book: <span class="text-rose-400 print:text-black">${stats.paymentBreakdown.booking}</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 print:bg-white print:border-black">
+                        <div class="font-semibold text-sky-400 print:text-black border-b border-slate-800 print:border-black pb-1 mb-2">Metode Bayar Reguler:</div>
+                        <div class="grid grid-cols-3 gap-1.5 text-center text-[11px] font-bold">
+                            <div>Cash: <span class="text-sky-300 print:text-black">${stats.methodBreakdown.cash}</span></div>
+                            <div>QRIS: <span class="text-sky-300 print:text-black">${stats.methodBreakdown.qris}</span></div>
+                            <div>TF: <span class="text-sky-300 print:text-black">${stats.methodBreakdown.tf}</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 mt-2 print:bg-transparent print:border-none print:p-0">
+                    <div class="font-semibold text-slate-200 mb-2 print:text-black print:mb-1">Rincian Slot Booking Reguler:</div>
+                    <table class="w-full text-left border-collapse bg-slate-900 rounded-lg border border-slate-800 print:bg-white print:border-black">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-300 text-[10px] uppercase border-b border-slate-700 print:bg-gray-100 print:text-black print:border-black">
+                                <th class="py-1.5 px-2 print:border-black">Waktu</th>
+                                <th class="py-1.5 px-2 print:border-black">Lapangan</th>
+                                <th class="py-1.5 px-2 print:border-black">Nama & Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRowsHtml}</tbody>
+                    </table>
+                </div>
+
+                <div class="print-flex hidden justify-between mt-12 px-8 text-sm">
+                    <div class="text-center">
+                        <p class="mb-16">Dibuat Oleh (Kasir),</p>
+                        <p class="font-bold border-b border-black w-32 mx-auto"></p>
+                    </div>
+                    <div class="text-center">
+                        <p class="mb-16">Diketahui Oleh,</p>
+                        <p class="font-bold border-b border-black w-32 mx-auto"></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadMonthlyArchive() {
+            const tbody = document.getElementById('monthly-table-body');
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-400 print:text-black"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Memuat data arsip...</td></tr>`;
+
+            try {
+                const snapshot = await db.ref('archives').once('value');
+                const data = snapshot.val();
+
+                if (!data) {
+                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-500 italic print:text-black">Belum ada arsip closing yang tersimpan.</td></tr>`;
+                    return;
+                }
+
+                let archiveList = Object.values(data);
+
+                let currentMonth = new Date().toISOString().slice(0, 7); 
+                archiveList = archiveList.filter(row => row.tanggal && row.tanggal.startsWith(currentMonth));
+
+                if (archiveList.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-500 italic print:text-black">Belum ada arsip closing yang tersimpan untuk bulan ini.</td></tr>`;
+                    return;
+                }
+
+                let totalReguler = 0, totalMember = 0;
+                let totalLunas = 0, totalDp = 0, totalBooking = 0;
+                let totalCash = 0, totalQris = 0, totalTf = 0;
+                let totalPendapatanAsli = 0; 
+
+                tbody.innerHTML = "";
+                archiveList.forEach(row => {
+                    let formattedDate = row.tanggal;
+                    try {
+                        let d = new Date(row.tanggal);
+                        if (!isNaN(d)) formattedDate = d.toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                    } catch(e) {}
+
+                    totalReguler += Number(row.jamReguler) || 0; totalMember += Number(row.jamMember) || 0;
+                    totalLunas += Number(row.lunas) || 0; totalDp += Number(row.dp) || 0; totalBooking += Number(row.booking) || 0;
+                    totalCash += Number(row.cash) || 0; totalQris += Number(row.qris) || 0; totalTf += Number(row.tf) || 0;
+
+                    let nominalHariIni = row.pendapatan !== undefined ? Number(row.pendapatan) : (Number(row.jamReguler) || 0) * 50000;
+                    totalPendapatanAsli += nominalHariIni;
+
+                    let tr = document.createElement('tr');
+                    tr.className = "border-b border-slate-800 hover:bg-slate-900 print:border-black print:hover:bg-white text-[11px]";
+                    tr.innerHTML = `
+                        <td class="py-1.5 px-2 font-mono font-bold text-slate-300 text-left print:border-black print:text-black">${formattedDate || '-'}</td>
+                        <td class="py-1.5 px-2 font-semibold text-slate-400 text-left print:border-black print:text-black">${row.hari || '-'}</td>
+                        <td class="py-1.5 px-2 font-bold text-rose-400 print:border-black print:text-black bg-rose-500/5 print:bg-transparent">${row.jamReguler || 0}</td>
+                        <td class="py-1.5 px-2 font-bold text-sky-400 print:border-black print:text-black bg-sky-500/5 print:bg-transparent">${row.jamMember || 0}</td>
+                        <td class="py-1.5 px-2 font-semibold text-emerald-400 print:border-black print:text-black">${row.lunas || 0}</td>
+                        <td class="py-1.5 px-2 font-semibold text-amber-400 print:border-black print:text-black">${row.dp || 0}</td>
+                        <td class="py-1.5 px-2 font-semibold text-rose-400 print:border-black print:text-black">${row.booking || 0}</td>
+                        <td class="py-1.5 px-2 font-semibold text-sky-300 print:border-black print:text-black">${row.cash || 0}</td>
+                        <td class="py-1.5 px-2 font-semibold text-sky-300 print:border-black print:text-black">${row.qris || 0}</td>
+                        <td class="py-1.5 px-2 font-semibold text-sky-300 print:border-black print:text-black">${row.tf || 0}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                let totalTr = document.createElement('tr');
+                totalTr.className = "bg-slate-800/80 font-bold border-t-2 border-slate-700 text-white print:bg-gray-100 print:border-black print:text-black";
+                totalTr.innerHTML = `
+                    <td colspan="2" class="py-2.5 px-2 text-right uppercase tracking-wider print:border-black">TOTAL KESELURUHAN:</td>
+                    <td class="py-2.5 px-2 text-rose-400 print:border-black print:text-black">${totalReguler}</td>
+                    <td class="py-2.5 px-2 text-sky-400 print:border-black print:text-black">${totalMember}</td>
+                    <td class="py-2.5 px-2 text-emerald-400 print:border-black print:text-black">${totalLunas}</td>
+                    <td class="py-2.5 px-2 text-amber-400 print:border-black print:text-black">${totalDp}</td>
+                    <td class="py-2.5 px-2 text-rose-400 print:border-black print:text-black">${totalBooking}</td>
+                    <td class="py-2.5 px-2 text-sky-300 print:border-black print:text-black">${totalCash}</td>
+                    <td class="py-2.5 px-2 text-sky-300 print:border-black print:text-black">${totalQris}</td>
+                    <td class="py-2.5 px-2 text-sky-300 print:border-black print:text-black">${totalTf}</td>
+                `;
+                tbody.appendChild(totalTr);
+                
+                let revTr = document.createElement('tr');
+                revTr.className = "bg-emerald-900/40 font-black text-emerald-400 print:bg-transparent print:text-black";
+                revTr.innerHTML = `
+                    <td colspan="2" class="py-3 px-2 text-right uppercase tracking-wider print:border-black">Estimasi Total Pemasukan:</td>
+                    <td colspan="8" class="py-3 px-2 text-left text-base print:border-black print:text-black">Rp ${totalPendapatanAsli.toLocaleString('id-ID')}</td>
+                `;
+                tbody.appendChild(revTr);
+
+            } catch (err) {
+                console.error("Gagal membaca arsip Firebase:", err);
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-rose-400 italic">Gagal mengambil data arsip dari Firebase.</td></tr>`;
+            }
+        }
+
+        function openReportModal() {
+            document.getElementById('report-select-day').value = currentDay;
+            switchReportTab('daily');
+            generateDailyReport();
+            document.getElementById('report-modal').classList.remove('hidden');
+        }
+
+        function closeReportModal() { document.getElementById('report-modal').classList.add('hidden'); }
+
+        function switchReportTab(tab) {
+            const btnDaily = document.getElementById('tab-btn-daily');
+            const btnMonthly = document.getElementById('tab-btn-monthly');
+            const tabDaily = document.getElementById('report-tab-daily');
+            const tabMonthly = document.getElementById('report-tab-monthly');
+
+            if (tab === 'daily') {
+                btnDaily.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition shadow";
+                btnMonthly.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+                tabDaily.classList.remove('hidden');
+                tabDaily.classList.add('print-active');
+                tabMonthly.classList.add('hidden');
+                tabMonthly.classList.remove('print-active');
+                generateDailyReport();
+            } else {
+                btnMonthly.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition shadow";
+                btnDaily.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+                tabMonthly.classList.remove('hidden');
+                tabMonthly.classList.add('print-active');
+                tabDaily.classList.add('hidden');
+                tabDaily.classList.remove('print-active');
+                loadMonthlyArchive();
+            }
+        }
+
+        async function archiveDailyReport() {
+            let day = document.getElementById('report-select-day').value;
+            let stats = calculateDailyStats(day);
+            let todayDateStr = new Date().toISOString().split('T')[0];
+
+            let archivePayload = {
+                tanggal: todayDateStr, hari: day, jamReguler: stats.regulerHours, jamMember: stats.memberHours,
+                lunas: stats.paymentBreakdown.lunas, dp: stats.paymentBreakdown.dp, booking: stats.paymentBreakdown.booking,
+                cash: stats.methodBreakdown.cash, qris: stats.methodBreakdown.qris, tf: stats.methodBreakdown.tf,
+                pendapatan: stats.totalEstimatedRevenue,
+                timestamp: Date.now()
+            };
+
+            const btn = document.getElementById('btn-archive-action');
+            let originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...`;
+            btn.disabled = true;
+
+            try {
+                await db.ref('archives/' + todayDateStr + '_' + day).set(archivePayload);
+                alert(`Closing harian hari ${day} berhasil disimpan permanen ke Firebase!`);
+            } catch (err) {
+                console.error("Gagal menyimpan arsip ke Firebase:", err);
+                alert("Gagal menyimpan ke arsip. Periksa koneksi internet Anda.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function openBulkModal() {
+            document.getElementById('bulk-day').value = currentDay;
+            document.getElementById('bulk-l1').checked = false;
+            document.getElementById('bulk-l2').checked = false;
+            document.getElementById('bulk-l3').checked = false;
+            document.getElementById('bulk-name').value = '';
+            document.getElementById('bulk-pay-status').value = '';
+            document.getElementById('bulk-pay-method').value = '';
+            document.getElementById('bulk-pay-note').value = '';
+
+            let startSelect = document.getElementById('bulk-start-time');
+            let endSelect = document.getElementById('bulk-end-time');
+            startSelect.innerHTML = ''; endSelect.innerHTML = '';
+
+            emptyDayTemplate.forEach((s, idx) => {
+                let opt1 = document.createElement('option'); opt1.value = idx; opt1.innerText = s.time; startSelect.appendChild(opt1);
+                let opt2 = document.createElement('option'); opt2.value = idx; opt2.innerText = s.time; endSelect.appendChild(opt2);
+            });
+            if (emptyDayTemplate.length > 0) endSelect.value = emptyDayTemplate.length - 1;
+            document.getElementById('bulk-modal').classList.remove('hidden');
+        }
+
+        function closeBulkModal() { document.getElementById('bulk-modal').classList.add('hidden'); }
+
+        async function saveBulkBooking() {
+            let day = document.getElementById('bulk-day').value;
+            let isL1 = document.getElementById('bulk-l1').checked; 
+            let isL2 = document.getElementById('bulk-l2').checked; 
+            let isL3 = document.getElementById('bulk-l3').checked;
+            let startIndex = parseInt(document.getElementById('bulk-start-time').value);
+            let endIndex = parseInt(document.getElementById('bulk-end-time').value);
+            let nameVal = document.getElementById('bulk-name').value.trim();
+            let payStatus = document.getElementById('bulk-pay-status').value; 
+            let payMethod = document.getElementById('bulk-pay-method').value; 
+            let payNote = document.getElementById('bulk-pay-note').value.trim();
+
+            if (!isL1 && !isL2 && !isL3) { alert("Pilih minimal 1 lapangan!"); return; }
+            if (startIndex > endIndex) { alert("Jam mulai tidak boleh lebih besar dari Jam selesai!"); return; }
+            if (!nameVal) { alert("Harap masukkan nama pembooking / klub!"); return; }
+
+            if (!dbRecord.schedule[day]) {
+                dbRecord.schedule[day] = JSON.parse(JSON.stringify(emptyDayTemplate));
+            }
+
+            let conflictList = [];
+            for (let i = startIndex; i <= endIndex; i++) {
+                let slotTime = dbRecord.schedule[day][i].time;
+                if (isL1 && dbRecord.schedule[day][i].l1 && dbRecord.schedule[day][i].l1 !== "Kosong" && dbRecord.schedule[day][i].l1 !== "Not Available") {
+                    conflictList.push(`Jam ${slotTime} (Lapangan 1: ${dbRecord.schedule[day][i].l1})`);
+                }
+                if (isL2 && dbRecord.schedule[day][i].l2 && dbRecord.schedule[day][i].l2 !== "Kosong" && dbRecord.schedule[day][i].l2 !== "Not Available") {
+                    conflictList.push(`Jam ${slotTime} (Lapangan 2: ${dbRecord.schedule[day][i].l2})`);
+                }
+                if (isL3 && dbRecord.schedule[day][i].l3 && dbRecord.schedule[day][i].l3 !== "Not Available") {
+                    conflictList.push(`Jam ${slotTime} (Lapangan 3: ${dbRecord.schedule[day][i].l3})`);
+                }
+            }
+
+            if (conflictList.length > 0) {
+                let confirmOverlap = confirm(
+                    "PERHATIAN: Ditemukan bentrok jadwal pada:\n\n" + 
+                    conflictList.slice(0, 5).join("\n") + 
+                    (conflictList.length > 5 ? `\n...dan ${conflictList.length - 5} slot lainnya.` : "") + 
+                    "\n\nApakah Anda tetap ingin menimpa (overwrite) jadwal yang sudah terisi ini?"
+                );
+                if (!confirmOverlap) return;
+            }
+
+            let cleanName = nameVal.replace(/^REG:\s*/i, '').trim();
+            let formattedVal = `REG: ${cleanName}`;
+            let details = [];
+            if (payStatus) details.push(payStatus); 
+            if (payMethod) details.push(payMethod); 
+            if (payNote) details.push(payNote);
+            if (details.length > 0) formattedVal += ` [${details.join(': ')}]`;
+
+            for (let i = startIndex; i <= endIndex; i++) {
+                if (isL1) dbRecord.schedule[day][i].l1 = formattedVal;
+                if (isL2) dbRecord.schedule[day][i].l2 = formattedVal;
+                if (isL3) dbRecord.schedule[day][i].l3 = formattedVal;
+            }
+
+            closeBulkModal(); 
+            renderDailyTable(); 
+            await saveToCloud(); 
+            alert("Booking massal berhasil disimpan!");
+        }
+
+        function openMemberModal() { renderMemberList(); document.getElementById('member-modal').classList.remove('hidden'); }
+        function closeMemberModal() { document.getElementById('member-modal').classList.add('hidden'); }
+
+        function renderMemberList() {
+            const container = document.getElementById('member-list-container');
+            container.innerHTML = '';
+            if (!dbRecord.members || dbRecord.members.length === 0) {
+                container.innerHTML = `<div class="text-slate-500 italic text-[11px] py-2">Belum ada member terdaftar.</div>`;
+                return;
+            }
+            
+            let today = new Date();
+            today.setHours(0,0,0,0);
+
+            dbRecord.members.forEach((m, idx) => {
+                let expDate = new Date(m.expiry);
+                expDate.setHours(0,0,0,0);
+                
+                let isExpired = !isNaN(expDate) && expDate < today;
+                let formattedDate = isNaN(expDate) ? m.expiry : expDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                
+                const item = document.createElement('div');
+                item.className = `flex justify-between items-center p-2 rounded-lg border ${isExpired ? 'bg-rose-500/10 border-rose-500/30' : 'bg-slate-950 border-slate-800'}`;
+                item.innerHTML = `
+                    <div>
+                        <div class="font-bold text-white flex items-center gap-1.5">
+                            ${m.name} ${isExpired ? '<span class="text-[9px] bg-rose-500 text-slate-950 px-1.5 py-0.2 rounded font-black">EXPIRED</span>' : ''}
+                        </div>
+                        <div class="text-[10px] ${isExpired ? 'text-rose-400 font-semibold' : 'text-sky-400'}">Habis: ${formattedDate}</div>
+                    </div>
+                    <button onclick="deleteMember(${idx})" class="text-rose-400 hover:text-rose-300 px-2 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-[10px]"><i class="fa-solid fa-trash"></i> Hapus</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function saveMember() {
+            const nameInput = document.getElementById('member-name-input'); const expiryInput = document.getElementById('member-expiry-input');
+            const name = nameInput.value.trim(); const expiry = expiryInput.value;
+            if (!name || !expiry) { alert("Harap isi Nama Member dan Tanggal Habis!"); return; }
+            if (!dbRecord.members) dbRecord.members = [];
+            let existingIdx = dbRecord.members.findIndex(m => m.name.toLowerCase().trim() === name.toLowerCase());
+            if (existingIdx !== -1) dbRecord.members[existingIdx].expiry = expiry;
+            else dbRecord.members.push({ name: name, expiry: expiry });
+            nameInput.value = ''; expiryInput.value = '';
+            renderMemberList(); renderDailyTable(); await saveToCloud();
+        }
+
+        async function deleteMember(idx) {
+            if (confirm("Hapus member ini?")) { dbRecord.members.splice(idx, 1); renderMemberList(); renderDailyTable(); await saveToCloud(); }
+        }
+
+        function openEditModal(slotIndex, courtKey) {
+            editSlotIndex = slotIndex; editCourtKey = courtKey;
+            const slot = dbRecord.schedule[currentDay][slotIndex];
+            document.getElementById('modal-info').value = `${currentDay} • ${slot.time}`;
+            document.getElementById('modal-court').value = courtKey === 'l1' ? 'Lapangan 1' : courtKey === 'l2' ? 'Lapangan 2' : 'Lapangan 3';
+            
+            let rawVal = slot[courtKey] === 'Kosong' ? '' : slot[courtKey];
+            let nameOnly = rawVal, foundStatus = "", foundMethod = "", foundNote = "";
+
+            if (rawVal.toUpperCase().startsWith("REG:")) {
+                let clean = rawVal.replace(/^REG:\s*/i, '').trim();
+                let bracketMatch = clean.match(/\[(.*?)\]/);
+                if (bracketMatch) {
+                    let fullStatus = bracketMatch[1];
+                    nameOnly = clean.replace(/\[.*?\]/, '').trim();
+                    let parts = fullStatus.split(':').map(p => p.trim());
+                    parts.forEach(part => {
+                        if (["Lunas", "DP", "Booking"].includes(part)) foundStatus = part;
+                        else if (["Cash", "QRIS", "TF"].includes(part)) foundMethod = part;
+                        else foundNote = part;
+                    });
+                } else { nameOnly = clean; }
+                document.getElementById('modal-input-name').value = "REG: " + nameOnly;
+            } else { document.getElementById('modal-input-name').value = rawVal; }
+
+            document.getElementById('modal-pay-status').value = foundStatus; document.getElementById('modal-pay-method').value = foundMethod; document.getElementById('modal-pay-note').value = foundNote;
+            document.getElementById('edit-modal').classList.remove('hidden'); document.getElementById('modal-input-name').focus();
+        }
+
+        function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+        function setModalValue(val) { document.getElementById('modal-input-name').value = val; }
+
+        async function saveSlotEdit() {
+            let val = document.getElementById('modal-input-name').value.trim();
+            let payStatus = document.getElementById('modal-pay-status').value; let payMethod = document.getElementById('modal-pay-method').value; let payNote = document.getElementById('modal-pay-note').value.trim();
+
+            if (!val || val.toLowerCase() === 'kosong') {
+                val = "Kosong";
+            } else if (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER")) {
+                let cleanName = val.replace(/^REG:\s*/i, '').replace(/\[.*?\]/g, '').trim();
+                if (cleanName) {
+                    let formatted = `REG: ${cleanName}`; let details = [];
+                    if (payStatus) details.push(payStatus); if (payMethod) details.push(payMethod); if (payNote) details.push(payNote);
+                    if (details.length > 0) formatted += ` [${details.join(': ')}]`;
+                    val = formatted;
+                } else { val = "Kosong"; }
+            }
+
+            dbRecord.schedule[currentDay][editSlotIndex][editCourtKey] = val;
+            closeEditModal(); renderDailyTable(); await saveToCloud();
+        }
+
+        function openAdminSettings() {
+            document.getElementById('admin-ads-input').value = dbRecord.ads ? dbRecord.ads.join(', ') : '';
+            document.getElementById('admin-settings-modal').classList.remove('hidden');
+        }
+
+        function closeAdminSettingsModal() { document.getElementById('admin-settings-modal').classList.add('hidden'); }
+
+        async function saveAdminSettings() {
+            const rawText = document.getElementById('admin-ads-input').value;
+            dbRecord.ads = rawText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            currentAdIndex = 0; updateAdBanner(); closeAdminSettingsModal(); await saveToCloud();
+            alert("Poster berhasil diperbarui!");
+        }
+
+        async function resetRegulerOnly() {
+            if (confirm("PERHATIAN:\nFitur ini akan menghapus SEMUA jadwal REGULER dari Senin sampai Minggu.\nJadwal Member akan tetap aman.\nLanjutkan?")) {
+                dayOrder.forEach(day => {
+                    if (dbRecord.schedule[day]) {
+                        dbRecord.schedule[day].forEach(slot => {
+                            ['l1', 'l2', 'l3'].forEach(court => {
+                                let val = slot[court];
+                                if (val && (val.toUpperCase().startsWith("REG:") || val.toUpperCase().includes("REGULER"))) { slot[court] = "Kosong"; }
+                            });
+                        });
+                    }
+                });
+                renderDailyTable(); closeAdminSettingsModal(); await saveToCloud();
+                alert("Semua jadwal Reguler berhasil dikosongkan.");
+            }
+        }
+
+        async function resetToDefault() {
+            if (confirm("Reset seluruh jadwal ke default?")) {
+                dbRecord.schedule = JSON.parse(JSON.stringify(defaultSchedule));
+                renderDailyTable(); await saveToCloud(); alert("Jadwal direset!");
+            }
+        }
+
+        function updateCloudIndicator(status) {
+            const badge = document.getElementById('cloud-status-badge');
+            const dot = document.getElementById('cloud-status-dot');
+            const text = document.getElementById('cloud-status-text');
+            if (!badge || !dot || !text) return;
+
+            badge.classList.remove('hidden');
+            
+            if (status === 'saving') {
+                dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+                text.innerText = "Menyimpan...";
+                badge.className = "hidden sm:flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300";
+            } else if (status === 'success') {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+                text.innerText = "Realtime Active";
+                badge.className = "hidden sm:flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300";
+            } else if (status === 'offline' || status === 'error') {
+                dot.className = "w-2 h-2 rounded-full bg-rose-400";
+                text.innerText = "Mode Offline";
+                badge.className = "hidden sm:flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300";
+            }
+        }
+
+        
+        async function saveToCloud() {
+            updateCloudIndicator('saving');
+
+            try {
+                await db.ref('dbRecord').set(dbRecord);
+                updateCloudIndicator('success');
+            } catch (err) {
+                console.error("Gagal menyimpan ke Firebase Realtime Database:", err);
+                updateCloudIndicator('offline');
+            }
+        }
+
+        
+        async function initFirebaseData() {
+            try {
+                const snapshot = await db.ref('dbRecord').once('value');
+                if (!snapshot.exists()) {
+                    await saveToCloud();
+                }
+            } catch (err) {
+                console.error("Gagal inisialisasi Firebase:", err);
+            }
+        }
+
+       // INISIALISASI DOM HARIAN
+        updateClock(); 
+        renderDayTabs(); 
+        renderDailyTable(); 
+        updateAdBanner(); 
+
+        initFirebaseData();
+
+        // MENDENGARKAN PERUBAHAN DATA REALTIME FIREBASE
+        db.ref('dbRecord').on('value', (snapshot) => {
+            const record = snapshot.val();
+            if (record && record.schedule) {
+                dbRecord = record;
+                if (!dbRecord.members) dbRecord.members = [];
+
+                if (!isAdminMode && !isSearching) {
+                    renderDayTabs(); 
+                    renderDailyTable(); 
+                    updateAdBanner();
+                }
+                updateCloudIndicator('success');
+            }
+        });
+
+        // ROTASI BANNER SPONSOR (7 DETIK)
+        setInterval(() => { rotateAdBanner(); }, 7000);
+
+    </script>
+</body>
+</html>
